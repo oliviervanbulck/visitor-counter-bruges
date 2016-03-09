@@ -2,14 +2,12 @@
 <html>
   <head>
     <title><%= title %></title>
-    <link rel='stylesheet' href='/stylesheets/bootstrap.css' />
-
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="Businet IoT Project">
     <meta name="author" content="">
     <!-- <link rel="icon" href="./favicon.ico"> -->
     <!-- Bootstrap core CSS -->
-    <link href="/stylesheets/bootstrap.css" rel="stylesheet">
+    <link href="/stylesheets/bootstrap-2.css" rel="stylesheet">
     <link href="/stylesheets/navbar.css" rel="stylesheet">
   </head>
   <body>
@@ -22,16 +20,18 @@
             <h2><%= page_title %></h2>
 
             <p>
-                <div class="panel panel-primary">
+                <div class="panel panel-default">
                     <div class="panel-heading">
                         <h3 class="panel-title">Occupied seats</h3>
                     </div>
                     <div class="panel-body">
                         <h2 id="occupied_seats"><%= seats %><h2/>
+                            <canvas id="seats_chart" width="400" height="400"></canvas>
+                            <a href="#" id="reset" class="btn btn-danger">Reset counter</a>
                     </div>
                 </div>
 
-                <div class="panel panel-primary">
+                <div class="panel panel-default">
                     <div class="panel-heading">
                         <h3 class="panel-title">Average waiting time</h3>
                     </div>
@@ -40,7 +40,7 @@
                     </div>
                 </div>
 
-                <div class="panel panel-primary">
+                <div class="panel panel-default">
                     <div class="panel-heading">
                         <h3 class="panel-title">Visitors today</h3>
                     </div>
@@ -49,7 +49,7 @@
                     </div>
                 </div>
 
-                <div class="panel panel-primary">
+                <div class="panel panel-default">
                     <div class="panel-heading">
                         <h3 class="panel-title">Popular times</h3>
                     </div>
@@ -64,11 +64,50 @@
 
     <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
     <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+    <script src="./javascripts/Chart.min.js"></script>
     <script>
         var socket = io();
         socket.on('userCount', function(msg){
-            $('#occupied_seats').html(msg);
+            $('#occupied_seats').html(msg + ' / 12');
+            newChart(msg, 12);
         });
+        $('#reset').click(function(){
+            socket.emit('reset_counter');
+            return false;
+        });
+
+        var loadedSeats = $('#occupied_seats').html();
+
+        newChart(loadedSeats, 12);
+
+        function newChart(currentVisitors, maxVisitors) {
+            if (maxVisitors - currentVisitors < 0) {
+                var freevalue = 0;
+                var color = "#ff4d4d";
+            } else {
+                var freevalue = maxVisitors - currentVisitors;
+                var color = "#ffbf80"
+            }
+
+            var visitors_chart_data = [
+                {
+                    value: currentVisitors,
+                    color: color,
+                    highlight: "#5AD3D1",
+                    label: "Occupied"
+                },
+                {
+                    value: freevalue,
+                    color: "#f2f2f2",
+                    highlight: "#5AD3D1",
+                    label: "Free"
+                }
+            ]
+
+            var ctx = $("#seats_chart").get(0).getContext("2d");
+            var visitors_chart = new Chart(ctx).Doughnut(visitors_chart_data,{segmentShowStroke:false, animateRotate: false, animateScale:false});
+        }
+
     </script>
 
     <!-- Bootstrap core JavaScript

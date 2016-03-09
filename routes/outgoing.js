@@ -12,7 +12,7 @@ router.get('/', function(req, res){
     else {
         res.sendStatus(418);
     }
-    console.log("Outgoing visitor");
+    console.log("========== Outgoing visitor ==========");
 });
 
 module.exports = router;

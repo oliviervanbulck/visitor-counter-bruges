@@ -8,6 +8,8 @@ router.get('/', function(req, res){
     counter.add();
     res.sendStatus(200);
 
+    console.log("========== Incoming visitor ==========");
+
 });
 
 module.exports = router;

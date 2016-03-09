@@ -2,16 +2,14 @@ var www = require('./bin/www');
 
 var Counter = module.exports = {
     userCount: 0,
+    averageWaitingTime: 0,
     io: null,
     connection: null,
 
     add: function() {
         Counter.userCount += 1;
-
         this.sendStatus(this.userCount);
-
-        this.addDb();
-
+        this.addDbIncoming();
     },
     remove: function() {
         Counter.userCount -= 1;
@@ -19,7 +17,7 @@ var Counter = module.exports = {
 
         this.sendStatus(this.userCount);
 
-
+        this.addDbOutgoing();
     },
     sendStatus: function() {
         console.log("New count: " + this.userCount);
@@ -36,21 +34,34 @@ var Counter = module.exports = {
             status = 3;
         return status;
     },
-    addDb: function() {
-        var query = 'INSERT INTO visitor_counter.visitor_info (datetime, inorout)' +
+    addDbIncoming: function() {
+        var query = 'INSERT INTO visitor_counter.entries (datetime, inorout)' +
             ' VALUES (' + 'now()' + ',' + ' 1' + ')';
-        console.log(query);
+        console.log("DB Query:" + query);
         this.connection.query(query, function (err, rows, fields) {
             if (err) throw err;
         });
     },
-    removeDb: function() {
-        var query = 'INSERT INTO visitor_counter.visitor_info (datetime, inorout)' +
+    addDbOutgoing: function() {
+        var query = 'INSERT INTO visitor_counter.entries (datetime, inorout)' +
             ' VALUES (' + 'now()' + ',' + ' 0' + ')';
-        console.log(query);
+        console.log("DB Query:" + query);
         this.connection.query(query, function (err, rows, fields) {
             if (err) throw err;
         });
+    },
+    calculateAverageTime: function () {
+        var query = 'INSERT INTO visitor_counter.entries (datetime, inorout)' +
+            ' VALUES (' + 'now()' + ',' + ' 0' + ')';
+        console.log("DB Query:" + query);
+        this.connection.query(query, function (err, rows, fields) {
+            if (err) throw err;
+        });
+    },
+    resetCounter: function() {
+        this.userCount = 0;
+        this.sendStatus();
+        console.log("Counter reset from client.");
     }
 }
 
