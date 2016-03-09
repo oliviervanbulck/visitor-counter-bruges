@@ -3,13 +3,14 @@ var www = require('./bin/www');
 var Counter = module.exports = {
     userCount: 0,
     averageWaitingTime: 0,
+    todayPeople: [],
     io: null,
     connection: null,
 
     add: function() {
         Counter.userCount += 1;
         this.sendStatus(this.userCount);
-        this.addDbIncoming();
+        //this.addDbIncoming();
     },
     remove: function() {
         Counter.userCount -= 1;
@@ -17,7 +18,7 @@ var Counter = module.exports = {
 
         this.sendStatus(this.userCount);
 
-        this.addDbOutgoing();
+        //this.addDbOutgoing();
     },
     sendStatus: function() {
         console.log("New count: " + this.userCount);
@@ -44,18 +45,32 @@ var Counter = module.exports = {
     },
     addDbOutgoing: function() {
         var query = 'INSERT INTO visitor_counter.entries (datetime, inorout)' +
-            ' VALUES (' + 'now()' + ',' + ' 0' + ')';
+            ' VALUES (' + 'now()' + ',' + ' -1' + ')';
         console.log("DB Query:" + query);
         this.connection.query(query, function (err, rows, fields) {
             if (err) throw err;
         });
     },
-    calculateAverageTime: function () {
-        var query = 'INSERT INTO visitor_counter.entries (datetime, inorout)' +
-            ' VALUES (' + 'now()' + ',' + ' 0' + ')';
-        console.log("DB Query:" + query);
-        this.connection.query(query, function (err, rows, fields) {
-            if (err) throw err;
+    getTodayVisitors: function () {
+        var monday_query = 'SELECT inorout, datetime FROM visitor_counter.entries WHERE WEEKDAY(datetime) = \'1\'';
+
+        console.log("DB Query:" + monday_query);
+        this.connection.query(monday_query, function (err, rows, fields) {
+            console.log(err);
+            //console.log(rows);
+            //this.todayPeople = rows;
+
+            for (var i = 0; i < rows.length; i++) {
+                var entryDate = new Date(rows[i]['datetime']);
+                var entryDay = entryDate.getDay();
+
+                if (entryDay == 1 && rows[i]['inorout'] == 1) {
+                    //switch (entryDate)
+                }
+                var entryOnlyDate = entryDate.get
+                console.log(entryDate);
+                this.todayPeople[entryDay]
+            }
         });
     },
     resetCounter: function() {
