@@ -6,7 +6,7 @@ var counter = require('../counter.js');
 router.get('/', function(req, res){
 
     counter.add();
-    res.sendStatus(200);
+    res.send('' + counter.getStatus());
 
     console.log("========== Incoming visitor ==========");
 

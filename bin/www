@@ -35,6 +35,8 @@ io.sockets.on('connection', function (socket) {
   });
 });
 
+counter.getTodayVisitors();
+
 /**
  * Get port from environment and store in Express.
  */

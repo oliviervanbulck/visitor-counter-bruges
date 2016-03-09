@@ -7,11 +7,10 @@ router.get('/', function(req, res){
 
     if(counter.userCount > 0) {
         counter.remove();
-        res.sendStatus(200);
     }
-    else {
-        res.sendStatus(418);
-    }
+
+    res.send('' + counter.getStatus());
+
     console.log("========== Outgoing visitor ==========");
 });
 

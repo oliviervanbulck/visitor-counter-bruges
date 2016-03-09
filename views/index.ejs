@@ -25,9 +25,9 @@
                         <h3 class="panel-title">Occupied seats</h3>
                     </div>
                     <div class="panel-body">
-                        <h2 id="occupied_seats"><%= seats %><h2/>
-                            <canvas id="seats_chart" style="width: 100%;max-width: 300px;"></canvas>
-                            <br /><div style="text-align:center;"><a href="#" id="reset" class="btn btn-danger">Reset counter</a></div>
+                        <h2 id="occupied_seats"><%= seats %></h2>
+                            <canvas id="seats_chart" style="width: 100%; max-width: 400px;max-height: 400px; height: auto;"></canvas>
+                            <a href="#" id="reset" class="btn btn-danger">Reset counter</a>
                     </div>
                 </div>
 
@@ -36,7 +36,7 @@
                         <h3 class="panel-title">Average waiting time</h3>
                     </div>
                     <div class="panel-body">
-                        Panel content
+                        <h2>24 minutes</h2>
                     </div>
                 </div>
 
@@ -45,7 +45,7 @@
                         <h3 class="panel-title">Visitors today</h3>
                     </div>
                     <div class="panel-body">
-                        Panel content
+                        <canvas id="visitors_today_chart" style="width: 100%"></canvas>
                     </div>
                 </div>
 
@@ -54,7 +54,7 @@
                         <h3 class="panel-title">Popular times</h3>
                     </div>
                     <div class="panel-body">
-                        Panel content
+                        <canvas id="popular_times_chart" style="width: 100%"></canvas>
                     </div>
                 </div>
             </div>
@@ -69,7 +69,7 @@
         var socket = io();
         socket.on('userCount', function(msg){
             $('#occupied_seats').html(msg + ' / 12');
-            newChart(msg, 12);
+            newDonutChart(msg, 12);
         });
         $('#reset').click(function(){
             socket.emit('reset_counter');
@@ -78,9 +78,9 @@
 
         var loadedSeats = $('#occupied_seats').html();
 
-        newChart(loadedSeats, 12);
+        newDonutChart(loadedSeats, 12);
 
-        function newChart(currentVisitors, maxVisitors) {
+        function newDonutChart(currentVisitors, maxVisitors) {
             if (maxVisitors - currentVisitors < 0) {
                 var freevalue = 0;
                 var color = "#ff4d4d";
@@ -106,8 +106,54 @@
 
             var ctx = $("#seats_chart").get(0).getContext("2d");
             var visitors_chart = new Chart(ctx).Doughnut(visitors_chart_data,{segmentShowStroke:false, animateRotate: false, animateScale:false});
-        }
 
+            var today_data = {
+                labels: ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00"],
+                datasets: [
+                    {
+                        label: "Todays visitors",
+                        fillColor: "rgba(220,220,220,0.2)",
+                        strokeColor: "rgba(220,220,220,1)",
+                        pointColor: "rgba(220,220,220,1)",
+                        pointStrokeColor: "#fff",
+                        pointHighlightFill: "#fff",
+                        pointHighlightStroke: "rgba(220,220,220,1)",
+                        data: [1, 3, 2, 0, 4, 10, 13]
+                    }
+                ]
+            };
+
+            var ctx2 = $("#visitors_today_chart").get(0).getContext("2d");
+            var today_visitor_chart = new Chart(ctx2).Line(today_data, null);
+
+            var popular_data = {
+                labels: ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00"],
+                datasets: [
+                    {
+                        label: "Popular times",
+                        fillColor: "rgba(220,220,220,0.2)",
+                        strokeColor: "rgba(220,220,220,1)",
+                        pointColor: "rgba(220,220,220,1)",
+                        pointStrokeColor: "#fff",
+                        pointHighlightFill: "#fff",
+                        pointHighlightStroke: "rgba(220,220,220,1)",
+                        data: [1, 3, 2, 0, 4, 10, 13]
+                    }
+                ]
+            };
+
+            var ctx3 = $("#popular_times_chart").get(0).getContext("2d");
+            var popular_times_chart = new Chart(ctx3).Bar(popular_data, null);
+
+            $( window ).resize(function() {
+                var ctx = $("#seats_chart").get(0).getContext("2d");
+                var visitors_chart = new Chart(ctx).Doughnut(visitors_chart_data,{segmentShowStroke:false, animateRotate: false, animateScale:false});
+                var ctx2 = $("#visitors_today_chart").get(0).getContext("2d");
+                var today_visitor_chart = new Chart(ctx2).Line(today_data, null);
+                var ctx3 = $("#popular_times_chart").get(0).getContext("2d");
+                var popular_times_chart = new Chart(ctx3).Bar(popular_data, null);
+            });
+        }
     </script>
 
     <!-- Bootstrap core JavaScript
