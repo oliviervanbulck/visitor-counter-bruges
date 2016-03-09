@@ -62,6 +62,9 @@
         </p>
     </div>
 
+    <p hidden id="today_people_keys"><%- todayPeopleKeys %></p>
+
+    <p hidden id="today_people_values"><%- todayPeopleValues %></p>
     <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
     <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
     <script src="./javascripts/Chart.min.js"></script>
@@ -107,8 +110,10 @@
             var ctx = $("#seats_chart").get(0).getContext("2d");
             var visitors_chart = new Chart(ctx).Doughnut(visitors_chart_data,{segmentShowStroke:false, animateRotate: false, animateScale:false});
 
+            var today_people_keys = $('#today_people_keys').html();
+            var today_people_values = $('#today_people_values').html();
             var today_data = {
-                labels: ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00"],
+                labels: today_people_keys,
                 datasets: [
                     {
                         label: "Todays visitors",

@@ -52,7 +52,7 @@ var Counter = module.exports = {
         });
     },
     getTodayVisitors: function () {
-        var monday_query = 'SELECT inorout, datetime FROM visitor_counter.entries WHERE WEEKDAY(datetime) = \'1\'';
+        var monday_query = 'SELECT inorout, datetime FROM visitor_counter.entries WHERE WEEKDAY(datetime) = \'0\''; // in SQL Monday is 0
 
         console.log("DB Query:" + monday_query);
         this.connection.query(monday_query, function (err, rows, fields) {
@@ -60,17 +60,24 @@ var Counter = module.exports = {
             //console.log(rows);
             //this.todayPeople = rows;
 
+            var outputObject = {};
+
             for (var i = 0; i < rows.length; i++) {
                 var entryDate = new Date(rows[i]['datetime']);
                 var entryDay = entryDate.getDay();
 
-                if (entryDay == 1 && rows[i]['inorout'] == 1) {
-                    //switch (entryDate)
+                if (entryDay == 1 && rows[i]['inorout'] == 1) { // In JS Monday is 1
+                    if ('' + entryDate.getHours() in outputObject) {
+                        outputObject['' + entryDate.getHours()]++;
+                    } else {
+                        outputObject['' + entryDate.getHours()] = 1;
+                        //console.log(entryDate.getHours());
+                    }
                 }
-                var entryOnlyDate = entryDate.get
-                console.log(entryDate);
-                this.todayPeople[entryDay]
             }
+
+            this.todayPeople = outputObject;
+            console.log(Object.keys(this.todayPeople));
         });
     },
     resetCounter: function() {
