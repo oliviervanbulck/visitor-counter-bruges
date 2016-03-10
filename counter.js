@@ -36,6 +36,16 @@ var Counter = module.exports = {
             status = 3;
         return status;
     },
+    makeConnectionToDb : function() {
+        var mysql = require('mysql');
+        var connection = mysql.createConnection({
+            host     : '192.168.1.100',
+            user     : 'visitorcounter',
+            password : 'Test1234'
+        });
+        this.connection = connection;
+        this.connection.connect();
+    },
     addDbIncoming: function() {
         var query = 'INSERT INTO visitor_counter.entries (datetime, inorout)' +
             ' VALUES (' + 'now()' + ',' + ' 1' + ')';
@@ -66,6 +76,10 @@ var Counter = module.exports = {
 
             var todayPeopleTemp = {};
 
+            for (var i = 9; i < 16; i++) {
+                todayPeopleTemp['' + i] = 0;
+            }
+
             for (var i = 0; i < rows.length; i++) {
                 var entryDate = new Date(rows[i]['datetime']);
                 var entryDay = entryDate.getDay();
@@ -87,25 +101,36 @@ var Counter = module.exports = {
         });
     },
     getDayPopularTimes: function(forDay) {
-        var day_query = 'SELECT inorout, datetime FROM visitor_counter.entries WHERE WEEKDAY(datetime) = '+ forDay; // We use the SQL format
+        var day_query = 'SELECT inorout, datetime FROM visitor_counter.entries WHERE WEEKDAY(datetime) = \''+ (forDay - 1) + '\''; // We use the SQL format
+        var count_query = 'SELECT COUNT(visitor_counter.entries.inorout) FROM visitor_counter.entries' +
+            ' WHERE WEEKDAY(datetime) = ' +forDay+ ' AND inorout = \'1\'';
 
         console.log("DB Query:" + day_query);
         var self = this;
+
+
+        this.connection.query(count_query, function (err, rows, fields) {
+            var totalCount = rows[0];
+
+        });
 
         this.connection.query(day_query, function (err, rows, fields) {
             if (err != null)
                 console.log(err);
             //console.log(rows);
-            //this.todayPeople = rows;
 
             var popularityTemp = {};
+
+            for (var i = 9; i < 16; i++) {
+                popularityTemp['' + i] = 0;
+            }
 
             for (var i = 0; i < rows.length; i++) {
                 var entryDate = new Date(rows[i]['datetime']);
                 var entryDay = entryDate.getDay();
                 var entryHours = entryDate.getHours();
 
-                if (entryDay == forDay+1 && rows[i]['inorout'] == 1) { // In JS Monday is 1, in SQL 0, so +1
+                if (entryDay == forDay && rows[i]['inorout'] == 1) { // In JS Monday is 1, in SQL 0, so +1
                     if ('' + entryHours in popularityTemp) {
                         popularityTemp['' + entryHours]++;
 
@@ -115,11 +140,23 @@ var Counter = module.exports = {
                     }
                 }
             }
-
-            self.dayPopularity =  popularityTemp;  //JSON.parse(JSON.stringify(outputObject));
-
+            /*
+            for (var item in popularityTemp) {
+                item = item / totalCount;
+            }
+            */
+            self.dayPopularity = popularityTemp;  //JSON.parse(JSON.stringify(outputObject));
+            self.sendNewPopularTimesSocket(forDay);
         });
 
+    },
+    sendNewPopularTimesSocket: function(forDay) {
+        //this.getDayPopularTimes(forDay)
+        console.log('Sending popular times for day ' + forDay);
+        console.log(this.dayPopularity);
+        var self = this;
+        this.io.emit('dayPopularityKeys', Object.keys(self.dayPopularity));
+        this.io.emit('dayPopularityValues', Object.keys(self.dayPopularity).map(function(key){return self.dayPopularity[key]}));
     },
     resetCounter: function() {
         this.userCount = 0;

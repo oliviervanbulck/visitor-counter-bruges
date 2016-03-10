@@ -10,19 +10,12 @@ var debug = require('debug')('bruges:server');
 var server = require('http').Server(app);
 var io = require('socket.io').listen(server);
 
-var mysql      = require('mysql');
-var connection = mysql.createConnection({
-  host     : '192.168.1.100',
-  user     : 'visitorcounter',
-  password : 'Test1234'
-});
+
 
 var counter = require('../counter')
 
 counter.io = io;
-connection.connect();
-
-counter.connection = connection;
+counter.makeConnectionToDb();
 
 io.sockets.on('connection', function (socket) {
   socket.emit('news', { hello: 'world' });
@@ -33,9 +26,13 @@ io.sockets.on('connection', function (socket) {
   socket.on('reset_counter', function(data) {
     counter.resetCounter();
   });
+  socket.on('day_popularity', function(data) {
+    console.log('New popularity request for day ' + data);
+    counter.getDayPopularTimes(data);
+  });
 });
 
-counter.getTodayVisitors();
+
 
 /**
  * Get port from environment and store in Express.
