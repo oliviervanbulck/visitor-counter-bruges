@@ -54,6 +54,21 @@
                         <h3 class="panel-title">Popular times</h3>
                     </div>
                     <div class="panel-body">
+                        <div class="dropdown">
+                            <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Select day... <span class="caret"></span></button>
+                            <ul class="dropdown-menu">
+                                <li><a href="#dropdown1" data-toggle="tab">Monday</a></li>
+                                <li class="divider"></li>
+                                <li><a href="#dropdown2" data-toggle="tab">Tuesday</a></li>
+                                <li class="divider"></li>
+                                <li><a href="#dropdown3" data-toggle="tab">Wednesday</a></li>
+                                <li class="divider"></li>
+                                <li><a href="#dropdown4" data-toggle="tab">Thursday</a></li>
+                                <li class="divider"></li>
+                                <li><a href="#dropdown5" data-toggle="tab">Friday</a></li>
+                            </ul>
+                            <h3>Monday</h3>
+                        </div>
                         <canvas id="popular_times_chart" style="width: 100%"></canvas>
                     </div>
                 </div>
@@ -113,7 +128,7 @@
             var today_people_keys = $('#today_people_keys').html();
             var today_people_values = $('#today_people_values').html();
             var today_data = {
-                labels: today_people_keys,
+                labels: today_people_keys.split(','),
                 datasets: [
                     {
                         label: "Todays visitors",
@@ -123,7 +138,7 @@
                         pointStrokeColor: "#fff",
                         pointHighlightFill: "#fff",
                         pointHighlightStroke: "rgba(220,220,220,1)",
-                        data: [1, 3, 2, 0, 4, 10, 13]
+                        data: today_people_values.split(',')
                     }
                 ]
             };

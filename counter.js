@@ -3,7 +3,8 @@ var www = require('./bin/www');
 var Counter = module.exports = {
     userCount: 0,
     averageWaitingTime: 0,
-    todayPeople: [],
+    todayPeople: null,
+    dayPopularity: null,
     io: null,
     connection: null,
 
@@ -55,30 +56,70 @@ var Counter = module.exports = {
         var monday_query = 'SELECT inorout, datetime FROM visitor_counter.entries WHERE WEEKDAY(datetime) = \'0\''; // in SQL Monday is 0
 
         console.log("DB Query:" + monday_query);
+        var self = this;
+
         this.connection.query(monday_query, function (err, rows, fields) {
-            console.log(err);
+            if (err != null)
+                console.log(err);
             //console.log(rows);
             //this.todayPeople = rows;
 
-            var outputObject = {};
+            var todayPeopleTemp = {};
 
             for (var i = 0; i < rows.length; i++) {
                 var entryDate = new Date(rows[i]['datetime']);
                 var entryDay = entryDate.getDay();
+                var entryHours = entryDate.getHours();
 
                 if (entryDay == 1 && rows[i]['inorout'] == 1) { // In JS Monday is 1
-                    if ('' + entryDate.getHours() in outputObject) {
-                        outputObject['' + entryDate.getHours()]++;
+                    if ('' + entryHours in todayPeopleTemp) {
+                        todayPeopleTemp['' + entryHours]++;
+
                     } else {
-                        outputObject['' + entryDate.getHours()] = 1;
+                        todayPeopleTemp['' + entryHours] = 1;
                         //console.log(entryDate.getHours());
                     }
                 }
             }
 
-            this.todayPeople = outputObject;
-            console.log(Object.keys(this.todayPeople));
+            self.todayPeople =  todayPeopleTemp;  //JSON.parse(JSON.stringify(outputObject));
+
         });
+    },
+    getDayPopularTimes: function(forDay) {
+        var day_query = 'SELECT inorout, datetime FROM visitor_counter.entries WHERE WEEKDAY(datetime) = '+ forDay; // We use the SQL format
+
+        console.log("DB Query:" + day_query);
+        var self = this;
+
+        this.connection.query(day_query, function (err, rows, fields) {
+            if (err != null)
+                console.log(err);
+            //console.log(rows);
+            //this.todayPeople = rows;
+
+            var popularityTemp = {};
+
+            for (var i = 0; i < rows.length; i++) {
+                var entryDate = new Date(rows[i]['datetime']);
+                var entryDay = entryDate.getDay();
+                var entryHours = entryDate.getHours();
+
+                if (entryDay == forDay+1 && rows[i]['inorout'] == 1) { // In JS Monday is 1, in SQL 0, so +1
+                    if ('' + entryHours in popularityTemp) {
+                        popularityTemp['' + entryHours]++;
+
+                    } else {
+                        popularityTemp['' + entryHours] = 1;
+                        //console.log(entryDate.getHours());
+                    }
+                }
+            }
+
+            self.dayPopularity =  popularityTemp;  //JSON.parse(JSON.stringify(outputObject));
+
+        });
+
     },
     resetCounter: function() {
         this.userCount = 0;

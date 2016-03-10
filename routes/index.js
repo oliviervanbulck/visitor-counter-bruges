@@ -9,7 +9,7 @@ router.get('/', function(req, res, next) {
     title: 'Hairdressers, co.',
     page_title: 'Waiting room',
     seats: counter.userCount,
-    todayPeopleKeys: keys, //Object.keys(counter.todayPeople),
+    todayPeopleKeys: Object.keys(counter.todayPeople),
     todayPeopleValues: Object.keys(counter.todayPeople).map(function(key){return counter.todayPeople[key]}) });
 });
 
