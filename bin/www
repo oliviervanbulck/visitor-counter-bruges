@@ -14,7 +14,8 @@ var mysql      = require('mysql');
 var connection = mysql.createConnection({
   host     : '192.168.1.100',
   user     : 'visitorcounter',
-  password : 'Test1234'
+  password : 'Test1234',
+  database : 'visitor_counter'
 });
 
 var counter = require('../counter')
@@ -32,6 +33,41 @@ io.sockets.on('connection', function (socket) {
   });
   socket.on('reset_counter', function(data) {
     counter.resetCounter();
+  });
+  socket.emit('waiting_time', function() {
+    var data_query = "SELECT * FROM entries WHERE datetime >= DATE_SUB(NOW(),INTERVAL 1 HOUR)";
+    this.connection.query(monday_query, function (err, rows, fields) {
+        console.log(err);
+
+        var incomings = [];
+        var outgoings = [];
+
+        var j = 0;
+        console.log(rows);
+        while(rows[j]['inorout'] == -1) {
+            rows.slice(j);
+            j++;
+        }
+        console.log(rows);
+
+        for (var i = 0; i < rows.length; i++) {
+            if(rows[i]['inorout'] == 1)
+                incomings.push(rows[i]['datetime']);
+            else
+                outgoings.push(rows[i]['datetime']);
+            /*var entryDate = new Date(rows[i]['datetime']);
+            var entryDay = entryDate.getDay();
+
+            if (entryDay == 1 && rows[i]['inorout'] == 1) { // In JS Monday is 1
+                if ('' + entryDate.getHours() in outputObject) {
+                    outputObject['' + entryDate.getHours()]++;
+                } else {
+                    outputObject['' + entryDate.getHours()] = 1;
+                    //console.log(entryDate.getHours());
+                }
+            }*/
+        }
+    });
   });
 });
 
