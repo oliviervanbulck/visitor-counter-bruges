@@ -25,9 +25,12 @@
                         <h3 class="panel-title">Occupied seats</h3>
                     </div>
                     <div class="panel-body">
-                        <h2 id="occupied_seats"><%= seats %></h2>
-                            <canvas id="seats_chart" style="width: 100%; max-width: 400px;max-height: 400px; height: auto;"></canvas>
-                            <a href="#" id="reset" class="btn btn-danger">Reset counter</a>
+                        <div style="width:100%;max-width:300px;height:300px;position: relative;left:50%;margin-left: -150px;">
+                            <canvas id="seats_chart" style="width: 100%; max-width: 300px; height: 300px;override:hidden;position:relative;z-index:1;"></canvas>
+                            <div style="width: 100%; max-width: 300px;height: 300px;text-align:center;vertical-align:middle;z-index:2;position: relative;top: -300px;pointer-events: none;line-height: 300px;font-size: 50px;font-family: archiveregular;" class="occupied_seats"><%= seats %></div>
+                        </div>
+                        <br />
+                        <div style="text-align: center;"><a href="#" id="reset" class="btn btn-danger">Reset counter</a></div>
                     </div>
                 </div>
 
@@ -68,7 +71,7 @@
     <script>
         var socket = io();
         socket.on('userCount', function(msg){
-            $('#occupied_seats').html(msg + ' / 12');
+            $('.occupied_seats').html(msg + ' / 12');
             newDonutChart(msg, 12);
         });
         $('#reset').click(function(){
@@ -76,7 +79,7 @@
             return false;
         });
 
-        var loadedSeats = $('#occupied_seats').html();
+        var loadedSeats = $('.occupied_seats').html();
 
         newDonutChart(loadedSeats, 12);
 
