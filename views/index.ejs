@@ -39,7 +39,7 @@
                         <h3 class="panel-title">Average waiting time</h3>
                     </div>
                     <div class="panel-body">
-                        <h2>24 minutes</h2>
+                        <h2><%= averageWaitingTime %> minutes</h2>
                     </div>
                 </div>
 
@@ -57,6 +57,21 @@
                         <h3 class="panel-title">Popular times</h3>
                     </div>
                     <div class="panel-body">
+                        <div class="dropdown">
+                            <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Select day... <span class="caret"></span></button>
+                            <ul class="dropdown-menu">
+                                <li><a id="dropdown1" href="#" data-toggle="tab">Monday</a></li>
+                                <li class="divider"></li>
+                                <li><a id="dropdown2" href="#" data-toggle="tab">Tuesday</a></li>
+                                <li class="divider"></li>
+                                <li><a id="dropdown3" href="#" data-toggle="tab">Wednesday</a></li>
+                                <li class="divider"></li>
+                                <li><a id="dropdown4" href="#" data-toggle="tab">Thursday</a></li>
+                                <li class="divider"></li>
+                                <li><a id="dropdown5" href="#" data-toggle="tab">Friday</a></li>
+                            </ul>
+                            <h3 class="daytext">Monday</h3>
+                        </div>
                         <canvas id="popular_times_chart" style="width: 100%"></canvas>
                     </div>
                 </div>
@@ -66,8 +81,9 @@
     </div>
 
     <p hidden id="today_people_keys"><%- todayPeopleKeys %></p>
-
     <p hidden id="today_people_values"><%- todayPeopleValues %></p>
+    <p hidden id="day_popularity_keys"><%- dayPopularityKeys %></p>
+    <p hidden id="day_popularity_values"><%- dayPopularityValues %></p>
     <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
     <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
     <script src="./javascripts/Chart.min.js"></script>
@@ -77,16 +93,58 @@
             $('.occupied_seats').html(msg + ' / 12');
             newDonutChart(msg, 12);
         });
+        socket.on('dayPopularityKeys', function(msg){
+            $('.day_popularity_keys').html(msg);
+            console.log("Received new keys: " + msg);
+        });
+        socket.on('dayPopularityValues', function(msg) {
+            console.log("Received new values: " + msg);
+            $('.day_popularity_values').html(msg);
+            var day_popularity_values = $('#day_popularity_values').html();
+            var values = String(msg);
+            newPopularityChart(day_popularity_keys.split(','), values.split(','));
+        });
         $('#reset').click(function(){
             socket.emit('reset_counter');
+            return false;
+        });
+
+        $('#dropdown1').click(function(){
+            socket.emit('day_popularity', '1');
+            $('.daytext').html('Monday');
+            return false;
+        });
+        $('#dropdown2').click(function(){
+            socket.emit('day_popularity', '2');
+            $('.daytext').html('Tuesday');
+            console.log("Click 2");
+            return false;
+        });
+        $('#dropdown3').click(function(){
+            socket.emit('day_popularity', '3');
+            $('.daytext').html('Wednesday');
+            return false;
+        });
+        $('#dropdown4').click(function(){
+            socket.emit('day_popularity', '4');
+            $('.daytext').html('Thursday');
+            return false;
+        });
+        $('#dropdown5').click(function(){
+            socket.emit('day_popularity', '5');
+            $('.daytext').html('Friday');
             return false;
         });
 
         var loadedSeats = $('.occupied_seats').html();
 
         newDonutChart(loadedSeats, 12);
+        var visitorsChart = null;
 
         function newDonutChart(currentVisitors, maxVisitors) {
+            if (visitorsChart != null)
+                visitorsChart.destroy();
+
             if (maxVisitors - currentVisitors < 0) {
                 var freevalue = 0;
                 var color = "#ff4d4d";
@@ -111,31 +169,43 @@
             ]
 
             var ctx = $("#seats_chart").get(0).getContext("2d");
-            var visitors_chart = new Chart(ctx).Doughnut(visitors_chart_data,{segmentShowStroke:false, animateRotate: false, animateScale:false});
+            visitorsChart = new Chart(ctx).Doughnut(visitors_chart_data,{segmentShowStroke:false, animateRotate: false, animateScale:false});
+        }
 
-            var today_people_keys = $('#today_people_keys').html();
-            var today_people_values = $('#today_people_values').html();
-            var today_data = {
-                labels: today_people_keys,
-                datasets: [
-                    {
-                        label: "Todays visitors",
-                        fillColor: "rgba(220,220,220,0.2)",
-                        strokeColor: "rgba(220,220,220,1)",
-                        pointColor: "rgba(220,220,220,1)",
-                        pointStrokeColor: "#fff",
-                        pointHighlightFill: "#fff",
-                        pointHighlightStroke: "rgba(220,220,220,1)",
-                        data: [1, 3, 2, 0, 4, 10, 13]
-                    }
-                ]
-            };
+        var today_people_keys = $('#today_people_keys').html();
+        var today_people_values = $('#today_people_values').html();
+        var today_data = {
+            labels: today_people_keys.split(','),
+            datasets: [
+                {
+                    label: "Todays visitors",
+                    fillColor: "rgba(220,220,220,0.2)",
+                    strokeColor: "rgba(220,220,220,1)",
+                    pointColor: "rgba(220,220,220,1)",
+                    pointStrokeColor: "#fff",
+                    pointHighlightFill: "#fff",
+                    pointHighlightStroke: "rgba(220,220,220,1)",
+                    data: today_people_values.split(',')
+                }
+            ]
+        };
 
-            var ctx2 = $("#visitors_today_chart").get(0).getContext("2d");
-            var today_visitor_chart = new Chart(ctx2).Line(today_data, null);
+        var ctx2 = $("#visitors_today_chart").get(0).getContext("2d");
+        var today_visitor_chart = new Chart(ctx2).Line(today_data, null);
+
+
+        var day_popularity_keys = $('#day_popularity_keys').html();
+        var day_popularity_values = $('#day_popularity_values').html();
+
+        var popularityChart = null;
+        newPopularityChart(day_popularity_keys.split(','), day_popularity_values.split(','));
+
+        function newPopularityChart(keys, values) {
+            if (popularityChart != null)
+                popularityChart.destroy();
 
             var popular_data = {
-                labels: ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00"],
+                labels: keys,
                 datasets: [
                     {
                         label: "Popular times",
@@ -145,22 +215,15 @@
                         pointStrokeColor: "#fff",
                         pointHighlightFill: "#fff",
                         pointHighlightStroke: "rgba(220,220,220,1)",
-                        data: [1, 3, 2, 0, 4, 10, 13]
+                        data: values
                     }
                 ]
             };
 
             var ctx3 = $("#popular_times_chart").get(0).getContext("2d");
-            var popular_times_chart = new Chart(ctx3).Bar(popular_data, null);
+            var popularityChart = new Chart(ctx3).Bar(popular_data, null);
 
-            $( window ).resize(function() {
-                var ctx = $("#seats_chart").get(0).getContext("2d");
-                var visitors_chart = new Chart(ctx).Doughnut(visitors_chart_data,{segmentShowStroke:false, animateRotate: false, animateScale:false});
-                var ctx2 = $("#visitors_today_chart").get(0).getContext("2d");
-                var today_visitor_chart = new Chart(ctx2).Line(today_data, null);
-                var ctx3 = $("#popular_times_chart").get(0).getContext("2d");
-                var popular_times_chart = new Chart(ctx3).Bar(popular_data, null);
-            });
+
         }
     </script>
 
