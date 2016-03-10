@@ -39,7 +39,7 @@ var Counter = module.exports = {
     makeConnectionToDb : function() {
         var mysql = require('mysql');
         var connection = mysql.createConnection({
-            host     : '192.168.1.100',
+            host     : 'localhost',
             user     : 'visitorcounter',
             password : 'Test1234'
         });
@@ -63,9 +63,10 @@ var Counter = module.exports = {
         });
     },
     getTodayVisitors: function () {
+        // Instead of hardcoded zero there would be TODAY
         var monday_query = 'SELECT inorout, datetime FROM visitor_counter.entries WHERE WEEKDAY(datetime) = \'0\''; // in SQL Monday is 0
 
-        console.log("DB Query:" + monday_query);
+        console.log("DB Query for today visitors:" + monday_query);
         var self = this;
 
         this.connection.query(monday_query, function (err, rows, fields) {
@@ -105,7 +106,7 @@ var Counter = module.exports = {
         var count_query = 'SELECT COUNT(visitor_counter.entries.inorout) FROM visitor_counter.entries' +
             ' WHERE WEEKDAY(datetime) = ' +forDay+ ' AND inorout = \'1\'';
 
-        console.log("DB Query:" + day_query);
+        console.log("DB Query for popular times: " + day_query);
         var self = this;
 
 
@@ -157,6 +158,51 @@ var Counter = module.exports = {
         var self = this;
         this.io.emit('dayPopularityKeys', Object.keys(self.dayPopularity));
         this.io.emit('dayPopularityValues', Object.keys(self.dayPopularity).map(function(key){return self.dayPopularity[key]}));
+    },
+    getAverageWaitingTime: function() {
+        // Instead of hardcoded zero there would be TODAY
+        var monday_query = 'SELECT inorout, datetime FROM visitor_counter.entries WHERE WEEKDAY(datetime) = \'1\''; // in SQL Monday is 0
+
+        console.log("DB Query for waiting time:" + monday_query);
+        var self = this;
+
+        this.connection.query(monday_query, function (err, rows, fields) {
+            if (err != null)
+                console.log(err);
+
+            var ins = [];
+            var outs = [];
+
+            for (var i = 0; i < rows.length; i++) {
+                var entryDate = new Date(rows[i]['datetime']);
+                var entryType = rows[i]['inorout'];
+
+                switch (entryType) {
+                    case 1:
+                        ins.push(entryDate);
+                        break;
+                    case -1:
+                        outs.push(entryDate);
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            var differenceTimes = [];
+            var totalMinutes = 0;
+
+            for (var i = 0; i < outs.length; i++) {
+                differenceTimes[i] = new Date(new Date(outs[i]) - new Date(ins[i])).getMinutes();
+                if (isNaN(differenceTimes[i]) == false)
+                    totalMinutes += differenceTimes[i];
+
+            }
+
+            var average = totalMinutes / outs.length;
+            self.averageWaitingTime = Math.round(average);
+
+        });
     },
     resetCounter: function() {
         this.userCount = 0;
