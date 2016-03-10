@@ -66,12 +66,11 @@ io.sockets.on('connection', function (socket) {
                  }*/
             }
         });
-        socket.on('day_popularity', function (data) {
-            console.log('New popularity request for day ' + data);
-            counter.getDayPopularTimes(data);
-        });
     });
-
+    socket.on('day_popularity', function (data) {
+        console.log('New popularity request for day ' + data);
+        counter.getDayPopularTimes(data);
+    });
 });
 
 /**

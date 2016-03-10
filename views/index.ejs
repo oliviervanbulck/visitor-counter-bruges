@@ -145,12 +145,35 @@
             if (visitorsChart != null)
                 visitorsChart.destroy();
 
-            if (maxVisitors - currentVisitors < 0) {
+            /*if (maxVisitors - currentVisitors < 0) {
                 var freevalue = 0;
                 var color = "#ff4d4d";
-            } else {
+            } else if (currentVisitors > 4) {
+                var color = "#ff9933";
+            }
+            else if (currentVisitors > 9) {
+                var color = "#ff4d4d";
+            }
+            else {
                 var freevalue = maxVisitors - currentVisitors;
-                var color = "#ffbf80"
+                var color = "#33cc33"
+            }*/
+
+            var freevalue = maxVisitors - currentVisitors;
+
+            if(maxVisitors / 2 > currentVisitors) {
+                //Green
+                var color = "#33cc33";
+            }
+            else if (currentVisitors < maxVisitors * 0.9) {
+                //Orange
+                var color = "#ff9933";
+            }
+            else {
+                //Red
+                if(currentVisitors > maxVisitors)
+                    freevalue = 0;
+                var color = "#ff4d4d";
             }
 
             var visitors_chart_data = [
@@ -221,7 +244,7 @@
             };
 
             var ctx3 = $("#popular_times_chart").get(0).getContext("2d");
-            var popularityChart = new Chart(ctx3).Bar(popular_data, null);
+            popularityChart = new Chart(ctx3).Bar(popular_data, null);
 
 
         }

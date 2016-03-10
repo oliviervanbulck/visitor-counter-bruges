@@ -7,7 +7,7 @@ var Counter = module.exports = {
     dayPopularity: null,
     io: null,
     connection: null,
-
+    maxVisitors: 12,
     add: function() {
         Counter.userCount += 1;
         this.sendStatus(this.userCount);
@@ -28,12 +28,22 @@ var Counter = module.exports = {
     },
     getStatus: function() {
         var status;
-        if(this.userCount < 5)
+        /*if(this.userCount < 5)
             status = 1;
         else if(this.userCount < 10)
             status = 2;
         else
+            status = 3;*/
+
+        if(this.maxVisitors / 2 > this.userCount) {
+            status = 1;
+        }
+        else if (this.userCount < this.maxVisitors * 0.9) {
+            status = 2;
+        }
+        else {
             status = 3;
+        }
         return status;
     },
     makeConnectionToDb : function() {
